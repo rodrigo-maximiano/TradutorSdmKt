@@ -8,6 +8,7 @@ import br.edu.ifsp.scl.tradutorsdmkt.Constantes.END_POINT
 import br.edu.ifsp.scl.tradutorsdmkt.Constantes.URL_BASE
 import br.edu.ifsp.scl.tradutorsdmkt.MainActivity
 import br.edu.ifsp.scl.tradutorsdmkt.MainActivity.codigosMensagen.RESPOSTA_TRADUCAO
+import br.edu.ifsp.scl.tradutorsdmkt.model.LanguagesResponse
 import br.edu.ifsp.scl.tradutorsdmkt.model.Translation
 import com.android.volley.Request
 import com.android.volley.RequestQueue
@@ -15,6 +16,7 @@ import com.android.volley.Response
 import com.android.volley.VolleyError
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.activity_main.*
@@ -26,15 +28,10 @@ import org.json.JSONObject
 class Tradutor(val mainActivity: MainActivity) {
 // As funções abaixo devem ser adicionadas aqui
 
-    fun traduzir(palavraOrigem: String, idiomaOrigem: String, idiomaDestino: String) {
+    fun getLanguages() {
         // Monta uma String com uma URL a partir das constantes e parâmetros do usuário
         val urlSb = StringBuilder(URL_BASE)
-        with(urlSb) {
-            append("${END_POINT}/")
-            append("${idiomaOrigem}/")
-            append("${palavraOrigem}/")
-            append("translations=${idiomaDestino}")
-        }
+        urlSb.append("languages")
         val url = urlSb.toString()
         // Cria uma fila de requisições Volley para enviar a requisição
         val filaRequisicaoTraducao: RequestQueue = Volley.newRequestQueue(mainActivity)
@@ -44,7 +41,7 @@ class Tradutor(val mainActivity: MainActivity) {
                 Request.Method.GET, // Método HTTP de requisição
                 url, // URL
                 null, // Objeto de requisição - somente em POST
-                RespostaListener(), // Listener para tratar resposta
+                LanguagesListener(), // Listener para tratar resposta
                 ErroListener() // Listener para tratar erro
             ) {
                 // Corpo do objeto
@@ -95,25 +92,25 @@ class Tradutor(val mainActivity: MainActivity) {
         }
     }*/
 
-    inner class RespostaListener : Response.Listener<JSONObject> {
+    inner class LanguagesListener : Response.Listener<JSONObject> {
         override fun onResponse(response: JSONObject?) {
             try {
-                // Usa um builder que usa o desserializador personalizado para criar um objeto Gson
-                val gsonBuilder: GsonBuilder = GsonBuilder()
-                // Usa reflexão para extrair o tipo da classe de um List<Translation>
-                val listTranslationType = object : TypeToken<List<Translation>>() {}.type
-                // Seta o desserializador personalizado no builder
-                gsonBuilder.registerTypeAdapter(listTranslationType, TranslationListDeserializer())
-                /* Usa o builder para criar um Gson e usa o Gson para converter o Json de resposta numa lista de
-                Translation usando o desserializador personalizado. */
-                val listTranslation: List<Translation> =
-                    gsonBuilder.create().fromJson(response.toString(), listTranslationType)
-                // Extrai somente o texto dos objetos Translation
-                val listTranslationString: StringBuffer = StringBuffer()
-                listTranslation.forEach { listTranslationString.append("${it.text}, ") }
-                mainActivity.tradutoHandler.obtainMessage(RESPOSTA_TRADUCAO,
-                    listTranslationString.toString().substringBeforeLast(',')).sendToTarget()
-            } catch (je: JSONException) {
+                // Cria um objeto Gson que consegue fazer reflexão de um Json para Data Class
+                val gson: Gson = Gson()
+                // Reflete a resposta (que é um Json) num objeto da classe Resposta
+                val resposta: LanguagesResponse = gson.fromJson(response.toString(), LanguagesResponse::class.java)
+                // StringBuffer para armazenar o resultado das traduções
+                var languages: MutableList<String> = mutableListOf()
+                // Parseando o objeto e adicionando as traduções ao StringBuffer, O(N^5)
+                resposta.results?.forEach {
+                    languages.add(it?.source!!) //Language?.id!!)
+                }
+                // Enviando as tradução ao Handler da thread de UI para serem mostrados na tela
+                mainActivity.tradutoHandler.obtainMessage(
+                    RESPOSTA_TRADUCAO,
+                    languages
+                ).sendToTarget()
+            } catch (jse: JSONException) {
                 mainActivity.mainLl.snackbar("Erro na conversão JSON")
             }
         }

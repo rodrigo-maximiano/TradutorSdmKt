@@ -15,42 +15,28 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             tools:context=".MainActivity">
-        <!-- Palavra original a ser traduzida -->
-        <EditText
-                android:id="@+id/originalEt"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Digite a palavra aqui"
-                android:inputType="text"/>
-        <!-- Idioma original -->
         <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Idioma original:"/>
+                android:text="Selecione o idioma:"
+        />
         <Spinner
-                android:id="@+id/idiomaOrigemSp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-
-        <!-- Idioma de destino -->
-        <TextView
+                android:id="@+id/idiomasSp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Idioma destino:"/>
-        <Spinner
-                android:id="@+id/idiomaDestinoSp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+        />
         <Button
-                android:id="@+id/traduzirBt"
+                android:id="@+id/buscaRegioesBt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Traduzir"/>
-        <!-- Texto traduzido -->
+                android:enabled="false"
+                android:text="Buscar regiões"
+        />
         <TextView
-                android:id="@+id/traduzidoTv"
+                android:id="@+id/regioesTv"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="match_parent"
+        />
     </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>
